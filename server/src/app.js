@@ -25,6 +25,7 @@ import consultationRoutes from './routes/consultationRoutes.js';
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const clientOrigin = process.env.CLIENT_URL || (isProduction ? '' : 'http://localhost:5173');
+const allowedClientOrigins = new Set([clientOrigin]);
 
 if (!clientOrigin) {
   throw new Error('CLIENT_URL must be configured in production');
@@ -36,11 +37,27 @@ if (isProduction) {
       'CLIENT_URL must be an HTTPS origin without a path or trailing slash in production',
     );
   }
+} else {
+  const localOrigin = new URL(clientOrigin);
+  if (localOrigin.hostname === 'localhost' || localOrigin.hostname === '127.0.0.1') {
+    for (const hostname of ['localhost', '127.0.0.1']) {
+      localOrigin.hostname = hostname;
+      allowedClientOrigins.add(localOrigin.origin);
+    }
+  }
 }
 
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(cors({ origin: clientOrigin, credentials: true }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedClientOrigins.has(origin)) return callback(null, true);
+      return callback(new Error('Origin is not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 // Express 5 exposes req.query through a getter. Shadow it with a writable copy

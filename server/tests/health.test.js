@@ -16,3 +16,29 @@ describe('GET /health', () => {
     });
   });
 });
+
+describe('development CORS origins', () => {
+  it.each(['http://localhost:5173', 'http://127.0.0.1:5173'])(
+    'allows the local preview origin %s',
+    async (origin) => {
+      const response = await request(app)
+        .options('/auth/login')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'POST')
+        .set('Access-Control-Request-Headers', 'content-type');
+
+      expect(response.status).toBe(204);
+      expect(response.headers['access-control-allow-origin']).toBe(origin);
+      expect(response.headers['access-control-allow-credentials']).toBe('true');
+    },
+  );
+
+  it('does not allow unrelated origins', async () => {
+    const response = await request(app)
+      .options('/auth/login')
+      .set('Origin', 'https://untrusted.example')
+      .set('Access-Control-Request-Method', 'POST');
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+  });
+});
