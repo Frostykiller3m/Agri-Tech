@@ -1,0 +1,77 @@
+{
+  "info": {
+    "name": "Agri-Tech Expert Consultations",
+    "description": "Task 12 consultation threads and protected image uploads.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "consultationId", "value": "" },
+    { "key": "imageFilename", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "List my consultations",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/consultations?status=open&page=1&limit=20"
+      }
+    },
+    {
+      "name": "Create consultation (farmer; optional file parts named images)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "topic", "value": "Leaves turning yellow", "type": "text" },
+            { "key": "description", "value": "The lower leaves are yellowing after recent heavy rain. What should I check first?", "type": "text" },
+            { "key": "farmId", "value": "", "type": "text", "disabled": true },
+            { "key": "cropId", "value": "", "type": "text", "disabled": true },
+            { "key": "images", "type": "file", "src": [], "description": "Optional, up to 3 JPEG, PNG, GIF, or WebP files; max 2 MB each. Add more parts with the same key." }
+          ]
+        },
+        "url": "{{baseUrl}}/consultations"
+      }
+    },
+    {
+      "name": "Get consultation thread (owner, admin, or expert)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/consultations/{{consultationId}}"
+      }
+    },
+    {
+      "name": "Read protected consultation image",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/consultations/{{consultationId}}/images/{{imageFilename}}"
+      }
+    },
+    {
+      "name": "Respond to consultation (admin or expert)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"message\": \"Please inspect the root zone for standing water and check whether drainage is blocked.\"\n}" },
+        "url": "{{baseUrl}}/consultations/{{consultationId}}/responses"
+      }
+    },
+    {
+      "name": "Close consultation (owner farmer)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/consultations/{{consultationId}}/close"
+      }
+    }
+  ]
+}

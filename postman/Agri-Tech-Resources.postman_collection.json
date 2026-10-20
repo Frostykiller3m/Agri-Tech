@@ -1,0 +1,57 @@
+{
+  "info": {
+    "name": "Agri-Tech Resource Catalog",
+    "description": "Task 9 catalog and moderation endpoints. Farmers only receive approved resources.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "resourceId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "List approved resources (farmer-safe)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/resources?search=seed&category=seed&page=1&limit=20"
+      }
+    },
+    {
+      "name": "Get resource details",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/resources/{{resourceId}}"
+      }
+    },
+    {
+      "name": "Create resource for review (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Hybrid rice seed\",\n  \"category\": \"seed\",\n  \"description\": \"Certified hybrid rice seed for the coming season.\",\n  \"price\": 850,\n  \"stock\": 30,\n  \"unit\": \"kg\",\n  \"imageUrl\": \"\"\n}"
+        },
+        "url": "{{baseUrl}}/resources"
+      }
+    },
+    {
+      "name": "Approve resource (admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" },
+        "url": "{{baseUrl}}/resources/{{resourceId}}/status"
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "info": {
+    "name": "Agri-Tech Alerts and Notifications",
+    "description": "Task 8 alert and notification endpoints. Set baseUrl and accessToken before use.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "notificationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Publish regional alert (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"weather\",\n  \"severity\": \"high\",\n  \"title\": \"Heavy rain advisory\",\n  \"message\": \"Check field drainage and protect vulnerable crops.\",\n  \"region\": { \"state\": \"Maharashtra\", \"district\": \"Pune\" },\n  \"cropFilter\": [],\n  \"expiresAt\": null\n}"
+        },
+        "url": "{{baseUrl}}/alerts"
+      }
+    },
+    {
+      "name": "List applicable alerts",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/alerts?page=1&limit=20"
+      }
+    },
+    {
+      "name": "List notifications",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/notifications?page=1&limit=20"
+      }
+    },
+    {
+      "name": "Mark notification read",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/notifications/{{notificationId}}/read"
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "info": {
+    "name": "Agri-Tech Cart and Orders",
+    "description": "Task 10 COD ordering, stock reservation, and order tracking endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "resourceId", "value": "" },
+    { "key": "orderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Place COD order (farmer)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [{ \"resource\": \"{{resourceId}}\", \"qty\": 2 }],\n  \"deliveryAddress\": {\n    \"recipientName\": \"Farm User\",\n    \"phone\": \"+919876543210\",\n    \"addressLine1\": \"12 Green Road\",\n    \"addressLine2\": \"\",\n    \"city\": \"Pune\",\n    \"state\": \"Maharashtra\",\n    \"postalCode\": \"411001\"\n  }\n}"
+        },
+        "url": "{{baseUrl}}/orders"
+      }
+    },
+    {
+      "name": "List my orders / admin orders",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/orders?page=1&limit=20"
+      }
+    },
+    {
+      "name": "Get order and tracking history",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/orders/{{orderId}}"
+      }
+    },
+    {
+      "name": "Cancel placed order (farmer)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/orders/{{orderId}}/cancel"
+      }
+    },
+    {
+      "name": "Advance order status (admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" },
+        "url": "{{baseUrl}}/orders/{{orderId}}/status"
+      }
+    }
+  ]
+}

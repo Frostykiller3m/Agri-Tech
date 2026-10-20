@@ -1,0 +1,2947 @@
+{
+  "info": {
+    "name": "Agri-Tech API — Complete Route Coverage",
+    "description": "Role-aware API collection covering health, auth, farms, crops, soil, weather, alerts, notifications, resources, orders, forum, consultations, and admin endpoints. Set the active environment and run folders in order. Dynamic IDs are captured after successful create/list responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const expected = Number(pm.variables.get('expectedStatus') || 200);",
+          "pm.test('HTTP status is ' + expected, () => pm.expect(pm.response.code).to.eql(expected));",
+          "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('application/json')) {",
+          "  const body = pm.response.json();",
+          "  pm.test('API response envelope is valid', () => {",
+          "    pm.expect(body).to.have.property('success').that.is.a('boolean');",
+          "    if (body.success) pm.expect(body).to.have.property('data');",
+          "    else { pm.expect(body.message).to.be.a('string'); pm.expect(body.errors).to.be.an('array'); }",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Registration\",\n  \"email\": \"{{registrationEmail}}\",\n  \"password\": \"{{farmerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);",
+                  "pm.environment.set('registrationEmail', 'postman-' + Date.now() + '@example.com');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{registrationEmail}}\",\n  \"password\": \"{{farmerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/refresh",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Setup",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const role = 'admin';",
+              "const email = pm.environment.get(role + 'Email');",
+              "const password = pm.environment.get(role + 'Password');",
+              "if (!email || !password) {",
+              "  pm.execution.skipRequest();",
+              "  throw new Error('Set ' + role + 'Email and ' + role + 'Password in the active environment.');",
+              "}",
+              "const cachedToken = pm.environment.get(role + 'Token');",
+              "let tokenIsCurrent = false;",
+              "try {",
+              "  const payload = JSON.parse(atob(cachedToken.split('.')[1]));",
+              "  tokenIsCurrent = payload.exp * 1000 > Date.now() + 60000;",
+              "} catch { /* Obtain a fresh token below. */ }",
+              "const login = () => pm.sendRequest({",
+              "  url: pm.environment.get('baseUrl') + '/auth/login',",
+              "  method: 'POST',",
+              "  header: { 'Content-Type': 'application/json' },",
+              "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },",
+              "}, (error, response) => {",
+              "  if (error) { pm.execution.skipRequest(); throw error; }",
+              "  if (response.code >= 200 && response.code < 300) {",
+              "    const token = response.json().data.accessToken;",
+              "    pm.environment.set(role + 'Token', token);",
+              "    pm.variables.set('accessToken', token);",
+              "    return;",
+              "  }",
+              "  if (role === 'farmer' && response.code === 401) {",
+              "    pm.sendRequest({",
+              "      url: pm.environment.get('baseUrl') + '/auth/register', method: 'POST',",
+              "      header: { 'Content-Type': 'application/json' },",
+              "      body: { mode: 'raw', raw: JSON.stringify({ name: 'Postman Farmer', email, password }) },",
+              "    }, (registerError, registerResponse) => {",
+              "      if (registerError) { pm.execution.skipRequest(); throw registerError; }",
+              "      if (registerResponse.code !== 201) {",
+              "        pm.execution.skipRequest();",
+              "        throw new Error('Farmer auto-registration failed with HTTP ' + registerResponse.code + '. Use a fresh test database or update farmerEmail.');",
+              "      }",
+              "      login();",
+              "    });",
+              "    return;",
+              "  }",
+              "  pm.execution.skipRequest();",
+              "  throw new Error(role + ' login failed with HTTP ' + response.code + '. Check the environment and seed the required role.');",
+              "});",
+              "if (tokenIsCurrent) pm.variables.set('accessToken', cachedToken);",
+              "else login();"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "GET /admin/ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/ping"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/stats"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auth/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.user?._id; if (id) pm.environment.set('userId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/users?search=farmer&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/users?search=farmer&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /admin/users/{{userId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/resources?status=pending&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/resources?status=pending&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /resources",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/resources",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman wheat seed\",\n  \"category\": \"seed\",\n  \"description\": \"Certified seed suitable for a local field trial.\",\n  \"price\": 500,\n  \"stock\": 50,\n  \"unit\": \"kg\",\n  \"imageUrl\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.resource?._id; if (id) pm.environment.set('resourceId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /resources/{{resourceId}}/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/resources/{{resourceId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /admin/resources/{{resourceId}}/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/resources/{{resourceId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Farmer",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmerToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const role = 'farmer';",
+              "const email = pm.environment.get(role + 'Email');",
+              "const password = pm.environment.get(role + 'Password');",
+              "if (!email || !password) {",
+              "  pm.execution.skipRequest();",
+              "  throw new Error('Set ' + role + 'Email and ' + role + 'Password in the active environment.');",
+              "}",
+              "const cachedToken = pm.environment.get(role + 'Token');",
+              "let tokenIsCurrent = false;",
+              "try {",
+              "  const payload = JSON.parse(atob(cachedToken.split('.')[1]));",
+              "  tokenIsCurrent = payload.exp * 1000 > Date.now() + 60000;",
+              "} catch { /* Obtain a fresh token below. */ }",
+              "const login = () => pm.sendRequest({",
+              "  url: pm.environment.get('baseUrl') + '/auth/login',",
+              "  method: 'POST',",
+              "  header: { 'Content-Type': 'application/json' },",
+              "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },",
+              "}, (error, response) => {",
+              "  if (error) { pm.execution.skipRequest(); throw error; }",
+              "  if (response.code >= 200 && response.code < 300) {",
+              "    const token = response.json().data.accessToken;",
+              "    pm.environment.set(role + 'Token', token);",
+              "    pm.variables.set('accessToken', token);",
+              "    return;",
+              "  }",
+              "  if (role === 'farmer' && response.code === 401) {",
+              "    pm.sendRequest({",
+              "      url: pm.environment.get('baseUrl') + '/auth/register', method: 'POST',",
+              "      header: { 'Content-Type': 'application/json' },",
+              "      body: { mode: 'raw', raw: JSON.stringify({ name: 'Postman Farmer', email, password }) },",
+              "    }, (registerError, registerResponse) => {",
+              "      if (registerError) { pm.execution.skipRequest(); throw registerError; }",
+              "      if (registerResponse.code !== 201) {",
+              "        pm.execution.skipRequest();",
+              "        throw new Error('Farmer auto-registration failed with HTTP ' + registerResponse.code + '. Use a fresh test database or update farmerEmail.');",
+              "      }",
+              "      login();",
+              "    });",
+              "    return;",
+              "  }",
+              "  pm.execution.skipRequest();",
+              "  throw new Error(role + ' login failed with HTTP ' + response.code + '. Check the environment and seed the required role.');",
+              "});",
+              "if (tokenIsCurrent) pm.variables.set('accessToken', cachedToken);",
+              "else login();"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "GET /auth/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /auth/me/language",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/me/language",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"en\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /farms?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/farms?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /farms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/farms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Field\",\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      77.5946,\n      12.9716\n    ]\n  },\n  \"district\": \"Bengaluru Urban\",\n  \"state\": \"Karnataka\",\n  \"areaInAcres\": 5.5,\n  \"soilType\": \"loamy\",\n  \"irrigationType\": \"drip\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.farm?._id; if (id) pm.environment.set('farmId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /farms/{{farmId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/farms/{{farmId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /farms/{{farmId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/farms/{{farmId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Field Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /crops?farmId={{farmId}}&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/crops?farmId={{farmId}}&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /crops",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/crops",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"name\": \"Wheat\",\n  \"variety\": \"HD 2967\",\n  \"sowingDate\": \"2026-06-01\",\n  \"expectedHarvestDate\": \"2026-10-01\",\n  \"status\": \"planned\",\n  \"yieldKg\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.crop?._id; if (id) pm.environment.set('cropId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /crops/{{cropId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/crops/{{cropId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /crops/{{cropId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/crops/{{cropId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"growing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /crops/{{cropId}}/activities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/crops/{{cropId}}/activities",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"irrigation\",\n  \"date\": \"2026-06-15\",\n  \"notes\": \"Postman irrigation\",\n  \"quantity\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.crop?.activityLog?.[0]?._id; if (id) pm.environment.set('activityId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /crops/{{cropId}}/activities/{{activityId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/crops/{{cropId}}/activities/{{activityId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /soil?farmId={{farmId}}&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/soil?farmId={{farmId}}&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /soil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/soil",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"date\": \"2026-06-15\",\n  \"pH\": 6.5,\n  \"nitrogen\": 50,\n  \"phosphorus\": 30,\n  \"potassium\": 40,\n  \"moisture\": 25,\n  \"organicCarbon\": 1.2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.report?._id; if (id) pm.environment.set('soilReportId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /soil/{{soilReportId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/soil/{{soilReportId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /soil/{{soilReportId}}/recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/soil/{{soilReportId}}/recommendations"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /soil/{{soilReportId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/soil/{{soilReportId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pH\": 6.6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /weather/{{farmId}}?cacheScope=postman-test-cache-scope-01",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/weather/{{farmId}}?cacheScope=postman-test-cache-scope-01"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /resources?search=seed&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/resources?search=seed&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /resources/{{resourceId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/resources/{{resourceId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /orders?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"resource\": \"{{resourceId}}\",\n      \"qty\": 1\n    }\n  ],\n  \"deliveryAddress\": {\n    \"recipientName\": \"Postman Farmer\",\n    \"phone\": \"+919876543210\",\n    \"addressLine1\": \"1 Farm Road\",\n    \"addressLine2\": \"\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.order?._id; if (id) pm.environment.set('orderId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /orders/{{orderId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/orders",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"resource\": \"{{resourceId}}\",\n      \"qty\": 1\n    }\n  ],\n  \"deliveryAddress\": {\n    \"recipientName\": \"Postman Farmer\",\n    \"phone\": \"+919876543210\",\n    \"addressLine1\": \"2 Farm Road\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.order?._id; if (id) pm.environment.set('cancelOrderId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /forum/posts?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/forum/posts?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /forum/posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/posts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman crop discussion\",\n  \"body\": \"Sharing a field update with the community.\",\n  \"category\": \"crops\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.post?._id; if (id) pm.environment.set('postId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /forum/posts/{{postId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /forum/posts/{{postId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Postman crop discussion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /forum/posts/{{postId}}/like",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}/like"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /forum/posts/{{postId}}/comments?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}/comments?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /forum/posts/{{postId}}/comments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}/comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Thanks for sharing this update.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.comment?._id; if (id) pm.environment.set('commentId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /forum/comments/{{commentId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/comments/{{commentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Thanks for sharing this useful update.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /forum/comments/{{commentId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/forum/comments/{{commentId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 204);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /forum/report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/report",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"post\",\n  \"targetId\": \"{{postId}}\",\n  \"reason\": \"Example community report for API exercise.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.report?._id; if (id) pm.environment.set('reportId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /consultations?status=open&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/consultations?status=open&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /consultations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/consultations",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Leaves turning yellow\",\n  \"description\": \"The lower leaves are yellowing after recent heavy rain. What should I check first?\",\n  \"farmId\": \"{{farmId}}\",\n  \"cropId\": \"{{cropId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.consultation?._id; if (id) pm.environment.set('consultationId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /consultations/{{consultationId}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/consultations/{{consultationId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Expert",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{expertToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const role = 'expert';",
+              "const email = pm.environment.get(role + 'Email');",
+              "const password = pm.environment.get(role + 'Password');",
+              "if (!email || !password) {",
+              "  pm.execution.skipRequest();",
+              "  throw new Error('Set ' + role + 'Email and ' + role + 'Password in the active environment.');",
+              "}",
+              "const cachedToken = pm.environment.get(role + 'Token');",
+              "let tokenIsCurrent = false;",
+              "try {",
+              "  const payload = JSON.parse(atob(cachedToken.split('.')[1]));",
+              "  tokenIsCurrent = payload.exp * 1000 > Date.now() + 60000;",
+              "} catch { /* Obtain a fresh token below. */ }",
+              "const login = () => pm.sendRequest({",
+              "  url: pm.environment.get('baseUrl') + '/auth/login',",
+              "  method: 'POST',",
+              "  header: { 'Content-Type': 'application/json' },",
+              "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },",
+              "}, (error, response) => {",
+              "  if (error) { pm.execution.skipRequest(); throw error; }",
+              "  if (response.code >= 200 && response.code < 300) {",
+              "    const token = response.json().data.accessToken;",
+              "    pm.environment.set(role + 'Token', token);",
+              "    pm.variables.set('accessToken', token);",
+              "    return;",
+              "  }",
+              "  if (role === 'farmer' && response.code === 401) {",
+              "    pm.sendRequest({",
+              "      url: pm.environment.get('baseUrl') + '/auth/register', method: 'POST',",
+              "      header: { 'Content-Type': 'application/json' },",
+              "      body: { mode: 'raw', raw: JSON.stringify({ name: 'Postman Farmer', email, password }) },",
+              "    }, (registerError, registerResponse) => {",
+              "      if (registerError) { pm.execution.skipRequest(); throw registerError; }",
+              "      if (registerResponse.code !== 201) {",
+              "        pm.execution.skipRequest();",
+              "        throw new Error('Farmer auto-registration failed with HTTP ' + registerResponse.code + '. Use a fresh test database or update farmerEmail.');",
+              "      }",
+              "      login();",
+              "    });",
+              "    return;",
+              "  }",
+              "  pm.execution.skipRequest();",
+              "  throw new Error(role + ' login failed with HTTP ' + response.code + '. Check the environment and seed the required role.');",
+              "});",
+              "if (tokenIsCurrent) pm.variables.set('accessToken', cachedToken);",
+              "else login();"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "GET /consultations?status=open&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/consultations?status=open&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /alerts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/alerts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"general\",\n  \"severity\": \"medium\",\n  \"title\": \"Expert field notice\",\n  \"message\": \"Monitor field conditions and follow local guidance.\",\n  \"region\": {\n    \"state\": \"Karnataka\"\n  },\n  \"cropFilter\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /consultations/{{consultationId}}/responses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/consultations/{{consultationId}}/responses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Please inspect the root zone for standing water and check drainage.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin Final",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const role = 'admin';",
+              "const email = pm.environment.get(role + 'Email');",
+              "const password = pm.environment.get(role + 'Password');",
+              "if (!email || !password) {",
+              "  pm.execution.skipRequest();",
+              "  throw new Error('Set ' + role + 'Email and ' + role + 'Password in the active environment.');",
+              "}",
+              "const cachedToken = pm.environment.get(role + 'Token');",
+              "let tokenIsCurrent = false;",
+              "try {",
+              "  const payload = JSON.parse(atob(cachedToken.split('.')[1]));",
+              "  tokenIsCurrent = payload.exp * 1000 > Date.now() + 60000;",
+              "} catch { /* Obtain a fresh token below. */ }",
+              "const login = () => pm.sendRequest({",
+              "  url: pm.environment.get('baseUrl') + '/auth/login',",
+              "  method: 'POST',",
+              "  header: { 'Content-Type': 'application/json' },",
+              "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },",
+              "}, (error, response) => {",
+              "  if (error) { pm.execution.skipRequest(); throw error; }",
+              "  if (response.code >= 200 && response.code < 300) {",
+              "    const token = response.json().data.accessToken;",
+              "    pm.environment.set(role + 'Token', token);",
+              "    pm.variables.set('accessToken', token);",
+              "    return;",
+              "  }",
+              "  if (role === 'farmer' && response.code === 401) {",
+              "    pm.sendRequest({",
+              "      url: pm.environment.get('baseUrl') + '/auth/register', method: 'POST',",
+              "      header: { 'Content-Type': 'application/json' },",
+              "      body: { mode: 'raw', raw: JSON.stringify({ name: 'Postman Farmer', email, password }) },",
+              "    }, (registerError, registerResponse) => {",
+              "      if (registerError) { pm.execution.skipRequest(); throw registerError; }",
+              "      if (registerResponse.code !== 201) {",
+              "        pm.execution.skipRequest();",
+              "        throw new Error('Farmer auto-registration failed with HTTP ' + registerResponse.code + '. Use a fresh test database or update farmerEmail.');",
+              "      }",
+              "      login();",
+              "    });",
+              "    return;",
+              "  }",
+              "  pm.execution.skipRequest();",
+              "  throw new Error(role + ' login failed with HTTP ' + response.code + '. Check the environment and seed the required role.');",
+              "});",
+              "if (tokenIsCurrent) pm.variables.set('accessToken', cachedToken);",
+              "else login();"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "GET /admin/orders?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/orders?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /admin/orders/{{orderId}}/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /orders/{{orderId}}/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /admin/orders/{{orderId}}/status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/orders/{{orderId}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"delivered\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /admin/alerts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/alerts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"general\",\n  \"severity\": \"medium\",\n  \"title\": \"Regional farm notice\",\n  \"message\": \"Please check local advisories before applying treatments.\",\n  \"region\": {\n    \"state\": \"Karnataka\"\n  },\n  \"cropFilter\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 201);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /admin/reports?status=pending&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/reports?status=pending&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /forum/reports?status=pending&page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/forum/reports?status=pending&page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /forum/reports/{{reportId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/reports/{{reportId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"reviewed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /forum/posts/{{postId}}/moderation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}/moderation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isHidden\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /admin/reports/{{reportId}}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/reports/{{reportId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"reviewed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /consultations/{{consultationId}}/responses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/consultations/{{consultationId}}/responses",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Please inspect the roots and check the drainage.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /consultations/{{consultationId}}/images/{{imageFilename}}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/consultations/{{consultationId}}/images/{{imageFilename}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 404);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Farmer Follow-up",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{farmerToken}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const role = 'farmer';",
+              "const email = pm.environment.get(role + 'Email');",
+              "const password = pm.environment.get(role + 'Password');",
+              "if (!email || !password) {",
+              "  pm.execution.skipRequest();",
+              "  throw new Error('Set ' + role + 'Email and ' + role + 'Password in the active environment.');",
+              "}",
+              "const cachedToken = pm.environment.get(role + 'Token');",
+              "let tokenIsCurrent = false;",
+              "try {",
+              "  const payload = JSON.parse(atob(cachedToken.split('.')[1]));",
+              "  tokenIsCurrent = payload.exp * 1000 > Date.now() + 60000;",
+              "} catch { /* Obtain a fresh token below. */ }",
+              "const login = () => pm.sendRequest({",
+              "  url: pm.environment.get('baseUrl') + '/auth/login',",
+              "  method: 'POST',",
+              "  header: { 'Content-Type': 'application/json' },",
+              "  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },",
+              "}, (error, response) => {",
+              "  if (error) { pm.execution.skipRequest(); throw error; }",
+              "  if (response.code >= 200 && response.code < 300) {",
+              "    const token = response.json().data.accessToken;",
+              "    pm.environment.set(role + 'Token', token);",
+              "    pm.variables.set('accessToken', token);",
+              "    return;",
+              "  }",
+              "  if (role === 'farmer' && response.code === 401) {",
+              "    pm.sendRequest({",
+              "      url: pm.environment.get('baseUrl') + '/auth/register', method: 'POST',",
+              "      header: { 'Content-Type': 'application/json' },",
+              "      body: { mode: 'raw', raw: JSON.stringify({ name: 'Postman Farmer', email, password }) },",
+              "    }, (registerError, registerResponse) => {",
+              "      if (registerError) { pm.execution.skipRequest(); throw registerError; }",
+              "      if (registerResponse.code !== 201) {",
+              "        pm.execution.skipRequest();",
+              "        throw new Error('Farmer auto-registration failed with HTTP ' + registerResponse.code + '. Use a fresh test database or update farmerEmail.');",
+              "      }",
+              "      login();",
+              "    });",
+              "    return;",
+              "  }",
+              "  pm.execution.skipRequest();",
+              "  throw new Error(role + ' login failed with HTTP ' + response.code + '. Check the environment and seed the required role.');",
+              "});",
+              "if (tokenIsCurrent) pm.variables.set('accessToken', cachedToken);",
+              "else login();"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "GET /alerts?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/alerts?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /notifications?page=1&limit=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notifications?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try { const body = pm.response.json(); const id = body.data.notifications?.[0]?._id; if (id) pm.environment.set('notificationId', id); } catch { /* Non-JSON response. */ }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /notifications/{{notificationId}}/read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/notifications/{{notificationId}}/read"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /orders/{{cancelOrderId}}/cancel",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/orders/{{cancelOrderId}}/cancel"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /consultations/{{consultationId}}/close",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/consultations/{{consultationId}}/close"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 200);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /forum/posts/{{postId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/forum/posts/{{postId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 204);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /soil/{{soilReportId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/soil/{{soilReportId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 204);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /crops/{{cropId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/crops/{{cropId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 204);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /farms/{{farmId}}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/farms/{{farmId}}"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('expectedStatus', 204);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

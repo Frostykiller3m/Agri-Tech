@@ -1,0 +1,21 @@
+{
+  "name": "agri-tech",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Smart farming management system",
+  "scripts": {
+    "lint": "npm run lint --prefix server && npm run lint --prefix client",
+    "check:i18n": "npm run check:i18n --prefix client",
+    "postman:generate": "node postman/generate-collection.js",
+    "test:api": "newman run postman/Agri-Tech-API.postman_collection.json --environment postman/Agri-Tech-Local.postman_environment.json",
+    "test:coverage": "npm run test:coverage --prefix server",
+    "test": "npm test --prefix server && npm test --prefix client -- --run",
+    "build": "npm run build --prefix client",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "newman": "^6.2.3",
+    "prettier": "^3.6.2"
+  }
+}

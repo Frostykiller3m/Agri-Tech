@@ -1,0 +1,68 @@
+{
+  "info": {
+    "name": "Agri-Tech Administration",
+    "description": "Task 13 admin dashboard, queue, user, order, alert, and moderation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "adminToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "resourceId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "reportId", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+  "item": [
+    { "name": "Dashboard statistics", "request": { "method": "GET", "url": "{{baseUrl}}/admin/stats" } },
+    { "name": "Search users", "request": { "method": "GET", "url": "{{baseUrl}}/admin/users?search=farmer&page=1&limit=20" } },
+    {
+      "name": "Update user role and active state",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"role\": \"farmer\",\n  \"isActive\": true\n}" },
+        "url": "{{baseUrl}}/admin/users/{{userId}}"
+      }
+    },
+    { "name": "Pending resource approvals", "request": { "method": "GET", "url": "{{baseUrl}}/admin/resources?status=pending&page=1&limit=20" } },
+    {
+      "name": "Approve or reject resource",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" },
+        "url": "{{baseUrl}}/admin/resources/{{resourceId}}/status"
+      }
+    },
+    { "name": "List orders", "request": { "method": "GET", "url": "{{baseUrl}}/admin/orders?page=1&limit=20" } },
+    {
+      "name": "Update order status",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" },
+        "url": "{{baseUrl}}/admin/orders/{{orderId}}/status"
+      }
+    },
+    {
+      "name": "Publish regional alert",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"type\": \"general\",\n  \"severity\": \"medium\",\n  \"title\": \"Regional farm notice\",\n  \"message\": \"Please check local advisories before applying treatments.\",\n  \"region\": { \"state\": \"Maharashtra\" },\n  \"cropFilter\": []\n}" },
+        "url": "{{baseUrl}}/admin/alerts"
+      }
+    },
+    { "name": "Pending moderation reports", "request": { "method": "GET", "url": "{{baseUrl}}/admin/reports?status=pending&page=1&limit=20" } },
+    {
+      "name": "Review or dismiss report",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"reviewed\"\n}" },
+        "url": "{{baseUrl}}/admin/reports/{{reportId}}"
+      }
+    }
+  ]
+}

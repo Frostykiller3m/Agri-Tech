@@ -1,0 +1,96 @@
+{
+  "info": {
+    "name": "Agri-Tech Community Forum",
+    "description": "Task 11 forum, comment, report, and moderation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "postId", "value": "" },
+    { "key": "commentId", "value": "" },
+    { "key": "reportId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "List visible posts",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/forum/posts?category=crops&page=1&limit=20"
+      }
+    },
+    {
+      "name": "Create post",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Preparing for the rainy season\",\n  \"body\": \"What drainage practices work well for your fields?\",\n  \"category\": \"crops\"\n}" },
+        "url": "{{baseUrl}}/forum/posts"
+      }
+    },
+    {
+      "name": "Toggle like",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/forum/posts/{{postId}}/like"
+      }
+    },
+    {
+      "name": "List comments",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/forum/posts/{{postId}}/comments?page=1&limit=20"
+      }
+    },
+    {
+      "name": "Add comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"body\": \"Thanks for sharing these practices.\"\n}" },
+        "url": "{{baseUrl}}/forum/posts/{{postId}}/comments"
+      }
+    },
+    {
+      "name": "Report a post or comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"targetType\": \"post\",\n  \"targetId\": \"{{postId}}\",\n  \"reason\": \"This content appears to be spam.\"\n}" },
+        "url": "{{baseUrl}}/forum/report"
+      }
+    },
+    {
+      "name": "List pending reports (admin)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": "{{baseUrl}}/forum/reports?status=pending&page=1&limit=20"
+      }
+    },
+    {
+      "name": "Hide a post (admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"isHidden\": true\n}" },
+        "url": "{{baseUrl}}/forum/posts/{{postId}}/moderation"
+      }
+    }
+  ]
+}

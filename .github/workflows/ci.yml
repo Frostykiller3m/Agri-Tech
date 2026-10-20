@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 }).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      MONGO_URI: mongodb://127.0.0.1:27017/agri_tech_ci
+      JWT_SECRET: ci-only-access-secret-that-is-never-used-outside-this-job
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-that-is-never-used-outside-this-job
+      CLIENT_URL: http://localhost:5173
+      CI_ADMIN_NAME: CI Administrator
+      CI_ADMIN_EMAIL: ci-admin@example.com
+      CI_ADMIN_PASSWORD: ci-only-admin-password
+      CI_EXPERT_NAME: CI Expert
+      CI_EXPERT_EMAIL: ci-expert@example.com
+      CI_EXPERT_PASSWORD: ci-only-expert-password
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Install root, server, and client dependencies
+        run: |
+          npm ci
+          npm ci --prefix server
+          npm ci --prefix client
+
+      - name: Lint server and client
+        run: npm run lint
+
+      - name: Test server
+        run: npm test --prefix server
+
+      - name: Test client
+        run: npm run test:run --prefix client
+
+      - name: Build production client
+        env:
+          VITE_API_URL: https://api.example.invalid
+        run: npm run build --prefix client
+
+      - name: Seed disposable API collection accounts
+        run: npm run seed:ci-users --prefix server
+
+      - name: Run API and Newman collection
+        shell: bash
+        run: |
+          set -euo pipefail
+          node server/src/server.js > /tmp/agri-tech-api.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5000/health >/dev/null; then
+              break
+            fi
+            if ! kill -0 "$api_pid" 2>/dev/null; then
+              cat /tmp/agri-tech-api.log
+              exit 1
+            fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:5000/health >/dev/null
+
+          npx newman run postman/Agri-Tech-API.postman_collection.json \
+            --environment postman/Agri-Tech-Local.postman_environment.json \
+            --env-var baseUrl=http://127.0.0.1:5000 \
+            --env-var adminEmail="$CI_ADMIN_EMAIL" \
+            --env-var adminPassword="$CI_ADMIN_PASSWORD" \
+            --env-var expertEmail="$CI_EXPERT_EMAIL" \
+            --env-var expertPassword="$CI_EXPERT_PASSWORD"
+
+      - name: Upload API logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: agri-tech-api-log
+          path: /tmp/agri-tech-api.log
+          if-no-files-found: ignore
