@@ -22,7 +22,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import forumRoutes from './routes/forumRoutes.js';
 import consultationRoutes from './routes/consultationRoutes.js';
 import { runAlertEvaluation } from './jobs/alertEvaluationJob.js';
-import { connectDatabase } from './config/db.js';
+import { connectDatabase, getMongoUri } from './config/db.js';
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -69,8 +69,8 @@ app.use(async (request, _response, next) => {
     return next();
   }
 
-  if (!process.env.MONGO_URI) {
-    return next(new Error('MONGO_URI must be configured for Vercel API requests'));
+  if (!getMongoUri()) {
+    return next(new Error('MONGO_URI or MONGO_URL must be configured for Vercel API requests'));
   }
 
   try {
@@ -137,7 +137,7 @@ app.get('/internal/cron/alerts', async (request, response, next) => {
   }
 
   try {
-    if (!process.env.MONGO_URI) throw new Error('MONGO_URI must be configured for Vercel API requests');
+    if (!getMongoUri()) throw new Error('MONGO_URI or MONGO_URL must be configured for Vercel API requests');
     await connectDatabase();
     const result = await runAlertEvaluation();
     return response.status(200).json({ success: true, data: result });

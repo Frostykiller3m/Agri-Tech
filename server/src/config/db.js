@@ -4,9 +4,13 @@ import logger from '../utils/logger.js';
 
 let connectionPromise;
 
-export async function connectDatabase(uri = process.env.MONGO_URI) {
+export function getMongoUri() {
+  return process.env.MONGO_URI || process.env.MONGO_URL;
+}
+
+export async function connectDatabase(uri = getMongoUri()) {
   if (!uri) {
-    logger.warn('MONGO_URI is not configured; starting without a database connection.');
+    logger.warn('MONGO_URI or MONGO_URL is not configured; starting without a database connection.');
     return null;
   }
 
