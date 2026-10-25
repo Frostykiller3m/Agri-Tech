@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { fetchNotifications, markNotificationRead } from '../api/alerts.js';
 import ExpertAlertForm from '../components/ExpertAlertForm.jsx';
+import EmptyState from '../components/EmptyState.jsx';
+import ActionIcon from '../components/ActionIcon.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const severityVariant = { low: 'success', medium: 'info', high: 'warning', critical: 'danger' };
@@ -66,7 +68,7 @@ function AlertsPage() {
         {loading ? (
           <div className="state-page" role="status"><Spinner animation="border" /><span>{t('loading')}</span></div>
         ) : notifications.length === 0 ? (
-          <Card className="empty-card"><Card.Body>{t('alertsEmpty')}</Card.Body></Card>
+          <EmptyState icon={<ActionIcon name="alerts" />} title={t('alertsEmptyTitle')} description={t('alertsEmpty')} />
         ) : (
           <>
             <div className="alerts-list">

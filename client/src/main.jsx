@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './i18n.js';
+import './styles/theme.css';
 import './index.css';
 
 import { StrictMode } from 'react';

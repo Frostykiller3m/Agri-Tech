@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Badge, Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import PageHeader from './PageHeader.jsx';
 
 import {
   addCropActivity,
@@ -129,12 +130,7 @@ function CropTracker({ farmId, crops, onCropsChange }) {
 
   return (
     <section className="crop-tracker" aria-labelledby="crop-tracker-title">
-      <div className="section-heading">
-        <div>
-          <h2 id="crop-tracker-title">{t('cropTrackerTitle')}</h2>
-          <p className="page-description">{t('cropTrackerDescription')}</p>
-        </div>
-      </div>
+      <PageHeader as="h2" titleId="crop-tracker-title" title={t('cropTrackerTitle')} subtitle={t('cropTrackerDescription')} />
       {requestError && <Alert variant="danger" role="alert">{requestError}</Alert>}
       <Card className="form-card crop-form-card">
         <Card.Body>

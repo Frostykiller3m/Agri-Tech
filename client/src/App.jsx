@@ -22,6 +22,7 @@ const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage.jsx'));
 const CartPage = lazy(() => import('./pages/CartPage.jsx'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage.jsx'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage.jsx'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'));
 const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage.jsx'));
 const ForumPage = lazy(() => import('./pages/ForumPage.jsx'));
 const ForumPostPage = lazy(() => import('./pages/ForumPostPage.jsx'));
@@ -53,11 +54,20 @@ function AppRoutes() {
         {t('skipToContent')}
       </a>
       <AppNavbar />
-      <Suspense fallback={<LoadingPage />}>
-        <Routes>
+      <div className="page-container">
+        <Suspense fallback={<LoadingPage />}>
+          <Routes>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -203,8 +213,9 @@ function AppRoutes() {
             }
           />
           <Route path="*" element={<HomeRedirect />} />
-        </Routes>
-      </Suspense>
+          </Routes>
+        </Suspense>
+      </div>
     </>
   );
 }

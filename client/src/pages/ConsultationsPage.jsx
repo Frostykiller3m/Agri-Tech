@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { fetchConsultations } from '../api/consultations.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ActionIcon from '../components/ActionIcon.jsx';
+import PageHeader from '../components/PageHeader.jsx';
 
 function ConsultationsPage() {
   const { t } = useTranslation();
@@ -36,10 +37,11 @@ function ConsultationsPage() {
   return (
     <main id="main-content" tabIndex="-1" className="content-page">
       <Container>
-        <div className="page-heading">
-          <div><p className="eyebrow">{t('consultationEyebrow')}</p><h1>{t('consultationTitle')}</h1><p className="page-description">{t('consultationDescriptionIntro')}</p></div>
-          {user?.role === 'farmer' && <Button as={Link} to="/consultations/new" variant="success"><ActionIcon name="plus" />{t('consultationNew')}</Button>}
-        </div>
+        <PageHeader
+          title={t('consultationTitle')}
+          subtitle={t('consultationDescriptionIntro')}
+          action={user?.role === 'farmer' && <Button as={Link} to="/consultations/new" variant="success"><ActionIcon name="plus" />{t('consultationNew')}</Button>}
+        />
         {user?.role !== 'expert' && <div className="consultation-filters">
           <Form.Group controlId="consultation-status-filter">
             <Form.Label>{t('consultationStatusLabel')}</Form.Label>

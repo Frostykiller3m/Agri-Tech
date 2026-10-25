@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom';
 import { createResource, updateResourceStatus } from '../api/resources.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useResourceList } from '../hooks/useAgriQueries.js';
+import PageHeader from '../components/PageHeader.jsx';
 
 const emptyForm = {
   name: '',
@@ -98,13 +99,7 @@ function ResourcesPage() {
   return (
     <main id="main-content" tabIndex="-1" className="content-page">
       <Container>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">{t('resourceEyebrow')}</p>
-            <h1>{t('resourceTitle')}</h1>
-            <p className="page-description">{t('resourceDescription')}</p>
-          </div>
-        </div>
+        <PageHeader title={t('resourceTitle')} subtitle={t('resourceDescription')} />
 
         {notice && (
           <Alert variant="success" role="status">

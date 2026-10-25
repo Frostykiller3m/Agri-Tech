@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Card, Col, Container, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { deleteFarm } from '../api/farms.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useFarmList } from '../hooks/useAgriQueries.js';
 import LoadingPage from '../components/LoadingPage.jsx';
 import ActionIcon from '../components/ActionIcon.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 
 function FarmListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -37,17 +40,11 @@ function FarmListPage() {
 
   return (
     <Container as="main" id="main-content" tabIndex="-1" className="content-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">{t('appName')}</p>
-          <h1>{t('farmsTitle')}</h1>
-          <p className="page-description">{t('farmsDescription')}</p>
-        </div>
-        <Button as={Link} to="/farms/new" variant="success">
-          <ActionIcon name="plus" />
-          {t('addFarm')}
-        </Button>
-      </div>
+      <PageHeader
+        title={t('farmsTitle')}
+        subtitle={t('farmsDescription')}
+        action={<Button as={Link} to="/farms/new" variant="success"><ActionIcon name="plus" />{t('addFarm')}</Button>}
+      />
       {error && (
         <Alert variant="danger" role="alert">
           {t('farmsLoadError')}
@@ -59,9 +56,14 @@ function FarmListPage() {
         </Alert>
       )}
       {!error && farms.length === 0 && (
-        <Card className="empty-card">
-          <Card.Body>{t('farmsEmpty')}</Card.Body>
-        </Card>
+        <EmptyState
+          icon={<ActionIcon name="farms" />}
+          title={t('farmsEmptyTitle')}
+          description={t('farmsEmptyDescription')}
+          actionLabel={t('addFarm')}
+          onAction={() => navigate('/farms/new')}
+          steps={[t('farmsStepFarm'), t('farmsStepCrop'), t('farmsStepSoil')]}
+        />
       )}
       <Row xs={1} md={2} xl={3} className="g-4">
         {farms.map((farm) => (

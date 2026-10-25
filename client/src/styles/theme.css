@@ -1,0 +1,41 @@
+:root {
+  --color-primary: #1f6f43;
+  --color-primary-dark: #155433;
+  --color-primary-light: #e0f0db;
+  --color-text-strong: #193122;
+  --color-text-muted: #52665a;
+  --color-surface: #fff;
+  --color-border: #d8e7d4;
+  --color-page-background: #f5f8f2;
+  --color-page-background-alt: #eef4eb;
+  --control-height: 44px;
+  --icon-size: 20px;
+  --shadow-soft: 0 14px 40px rgb(25 49 34 / 8%);
+  --radius-card: 12px;
+}
+
+.page-container {
+  box-sizing: border-box;
+  margin-inline: auto;
+  max-width: 1200px;
+  padding-inline: 16px;
+  width: 100%;
+}
+
+.page-container > main > .container,
+.page-container > main > .container-fluid,
+.page-container > main > .container-lg {
+  max-width: 100%;
+  padding-inline: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (min-width: 768px) {
+  .page-container {
+    padding-inline: 24px;
+  }
+}

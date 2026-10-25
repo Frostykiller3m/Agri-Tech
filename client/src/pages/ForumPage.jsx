@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { createPost, deletePost, fetchPosts, fetchReports, setPostHidden, updateReport } from '../api/forum.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ActionIcon from '../components/ActionIcon.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 
 const categories = ['general', 'crops', 'pests', 'soil', 'weather', 'markets'];
 
@@ -101,9 +103,7 @@ function ForumPage() {
   return (
     <main id="main-content" tabIndex="-1" className="content-page">
       <Container>
-        <div className="page-heading">
-          <div><p className="eyebrow">{t('forumEyebrow')}</p><h1>{t('forumTitle')}</h1><p className="page-description">{t('forumDescription')}</p></div>
-        </div>
+        <PageHeader title={t('forumTitle')} subtitle={t('forumDescription')} />
         {notice && <Alert variant="success" role="status">{notice}</Alert>}
         {actionError && <Alert variant="danger" role="alert">{actionError}</Alert>}
 
@@ -154,7 +154,7 @@ function ForumPage() {
         {loading ? (
           <div className="state-page" role="status"><Spinner animation="border" /><span>{t('loading')}</span></div>
         ) : posts.length === 0 ? (
-          <Card className="empty-card"><Card.Body>{t('forumEmpty')}</Card.Body></Card>
+          <EmptyState icon={<ActionIcon name="forum" />} title={t('forumEmptyTitle')} description={t('forumEmpty')} />
         ) : (
           <div className="forum-feed">
             {posts.map((post) => (

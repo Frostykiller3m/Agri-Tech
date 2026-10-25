@@ -1,32 +1,39 @@
-import { render, screen } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { vi } from 'vitest';
-
-vi.mock('../api/farms.js', () => ({
-  fetchFarms: vi.fn(() => Promise.resolve({ farms: [], pagination: { page: 1, totalPages: 1 } })),
-  deleteFarm: vi.fn(),
-}));
-vi.mock('../context/AuthContext.jsx', () => ({
-  useAuth: () => ({ user: { _id: 'test-farmer' } }),
-}));
 
 import '../i18n.js';
 import FarmListPage from './FarmListPage.jsx';
 
-describe('FarmListPage', () => {
-  it('renders an empty state when the farmer has no farms', async () => {
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+}));
+
+vi.mock('../context/AuthContext.jsx', () => ({
+  useAuth: () => ({ user: { _id: 'farmer-1' } }),
+}));
+
+vi.mock('../hooks/useAgriQueries.js', () => ({
+  useFarmList: () => ({ data: { farms: [], pagination: { page: 1, totalPages: 1 } }, isLoading: false, isError: false }),
+}));
+
+function CurrentPath() {
+  const { pathname } = useLocation();
+  return <span data-testid="current-path">{pathname}</span>;
+}
+
+describe('FarmListPage empty state', () => {
+  it('takes the farmer to the existing add-farm route', () => {
     render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <FarmListPage />
-        </MemoryRouter>
-      </QueryClientProvider>,
+      <MemoryRouter initialEntries={['/farms']}>
+        <FarmListPage />
+        <CurrentPath />
+      </MemoryRouter>,
     );
 
-    expect(
-      await screen.findByText('No farms yet. Add your first farm to get started.'),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Set up your first farm' })).toBeInTheDocument();
+    const emptyState = screen.getByRole('heading', { name: 'Set up your first farm' }).closest('.empty-state-card');
+    fireEvent.click(within(emptyState).getByRole('button', { name: 'Add farm' }));
+    expect(screen.getByTestId('current-path')).toHaveTextContent('/farms/new');
   });
 });

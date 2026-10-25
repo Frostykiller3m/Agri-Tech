@@ -5,6 +5,9 @@ import { Link } from 'react-router-dom';
 
 import { fetchOrders } from '../api/orders.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import PageHeader from '../components/PageHeader.jsx';
+import EmptyState from '../components/EmptyState.jsx';
+import ActionIcon from '../components/ActionIcon.jsx';
 
 const statusVariant = { placed: 'primary', approved: 'info', shipped: 'warning', delivered: 'success', cancelled: 'secondary' };
 
@@ -38,9 +41,9 @@ function OrdersPage() {
   return (
     <main id="main-content" tabIndex="-1" className="content-page">
       <Container>
-        <div className="page-heading">
-          <div><p className="eyebrow">{t('orderEyebrow')}</p><h1>{t(isAdmin ? 'orderManagementTitle' : 'myOrdersTitle')}</h1></div>
-          {isAdmin && (
+        <PageHeader
+          title={t(isAdmin ? 'orderManagementTitle' : 'myOrdersTitle')}
+          action={isAdmin && (
             <Form.Group controlId="orders-status-filter">
               <Form.Label>{t('orderStatusLabel')}</Form.Label>
               <Form.Select value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
@@ -49,12 +52,12 @@ function OrdersPage() {
               </Form.Select>
             </Form.Group>
           )}
-        </div>
+        />
         {error && <Alert variant="danger" role="alert">{t('ordersLoadError')}</Alert>}
         {loading ? (
           <div className="state-page" role="status"><Spinner animation="border" /><span>{t('loading')}</span></div>
         ) : orders.length === 0 ? (
-          <Card className="empty-card"><Card.Body>{t('ordersEmpty')}</Card.Body></Card>
+          <EmptyState icon={<ActionIcon name="orders" />} title={t('ordersEmptyTitle')} description={t('ordersEmpty')} />
         ) : (
           <div className="orders-list">
             {orders.map((order) => (
