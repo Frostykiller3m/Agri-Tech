@@ -5,12 +5,15 @@ import logger from '../utils/logger.js';
 let connectionPromise;
 
 export function getMongoUri() {
-  return process.env.MONGO_URI || process.env.MONGO_URL;
+  return process.env.MONGO_URI
+    || process.env.MONGODB_URI
+    || process.env.MONGO_URL
+    || process.env.MONGO_MONGODB_URI;
 }
 
 export async function connectDatabase(uri = getMongoUri()) {
   if (!uri) {
-    logger.warn('MONGO_URI or MONGO_URL is not configured; starting without a database connection.');
+    logger.warn('A MongoDB connection URI is not configured; starting without a database connection.');
     return null;
   }
 
