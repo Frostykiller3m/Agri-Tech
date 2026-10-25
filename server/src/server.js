@@ -7,11 +7,15 @@ import { startAlertEvaluationJob } from './jobs/alertEvaluationJob.js';
 
 const port = Number(process.env.PORT) || 5000;
 
-try {
-  await connectDatabase();
-  startAlertEvaluationJob();
-  app.listen(port, () => logger.info(`Agri-Tech API listening on port ${port}`));
-} catch (error) {
-  logger.error(error);
-  process.exitCode = 1;
+export default app;
+
+if (!process.env.VERCEL) {
+  try {
+    await connectDatabase();
+    startAlertEvaluationJob();
+    app.listen(port, () => logger.info(`Agri-Tech API listening on port ${port}`));
+  } catch (error) {
+    logger.error(error);
+    process.exitCode = 1;
+  }
 }
